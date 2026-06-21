@@ -1,0 +1,9 @@
+[CmdletBinding(SupportsShouldProcess=$true)]
+param([string]$ConnectionName,[switch]$Reconnect,[switch]$RestartRasServices,[switch]$ResetNetworkStack,[switch]$ClearDns,[string]$OutputPath="$env:USERPROFILE\Desktop\VpnRepair")
+$ErrorActionPreference='Stop';New-Item -ItemType Directory -Path $OutputPath -Force|Out-Null;$Log=Join-Path $OutputPath ("repair-{0:yyyyMMdd-HHmmss}.log"-f(Get-Date));function L($m){"$(Get-Date -Format s) $m"|Tee-Object -FilePath $Log -Append};if(-not($Reconnect-or$RestartRasServices-or$ResetNetworkStack-or$ClearDns)){throw'Choose at least one repair action.'}
+Get-VpnConnection -AllUserConnection -ErrorAction SilentlyContinue|Export-Clixml (Join-Path $OutputPath 'vpn-before.xml');rasdial|Out-File (Join-Path $OutputPath 'rasdial-before.txt')
+if($Reconnect){if([string]::IsNullOrWhiteSpace($ConnectionName)){throw'-ConnectionName is required.'};if($PSCmdlet.ShouldProcess($ConnectionName,'Reconnect VPN')){rasdial $ConnectionName /disconnect|Tee-Object -FilePath $Log -Append;Start-Sleep 2;rasdial $ConnectionName|Tee-Object -FilePath $Log -Append;L"Reconnect attempted for $ConnectionName"}}
+if($RestartRasServices){foreach($s in'RasMan','IKEEXT','PolicyAgent'){if(Get-Service $s -ErrorAction SilentlyContinue){if($PSCmdlet.ShouldProcess($s,'Restart service')){Restart-Service $s -Force;L"Restarted $s"}}}}
+if($ClearDns-and$PSCmdlet.ShouldProcess('DNS cache','Flush')){Clear-DnsClientCache;L'DNS cache flushed.'}
+if($ResetNetworkStack-and$PSCmdlet.ShouldProcess('Network stack','Reset Winsock and TCP/IP')){netsh winsock reset|Tee-Object -FilePath $Log -Append;netsh int ip reset|Tee-Object -FilePath $Log -Append;L'Network stack reset; reboot may be required.'}
+rasdial|Out-File (Join-Path $OutputPath 'rasdial-after.txt');L'Repair workflow finished.'
