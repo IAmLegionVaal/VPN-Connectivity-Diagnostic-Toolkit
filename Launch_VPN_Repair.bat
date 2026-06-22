@@ -1,6 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '%~dp0VPN_Connectivity_Repair_Toolkit.ps1' -ErrorAction SilentlyContinue"
 
 :menu
 cls
@@ -19,43 +20,58 @@ echo   0. Exit
 echo ============================================================
 set /p CHOICE=Select an option: 
 
-if "%CHOICE%"=="1" set ARGS=&goto run
+if "%CHOICE%"=="1" goto diagnose
 if "%CHOICE%"=="2" goto safe
-if "%CHOICE%"=="3" set ARGS=-RestartVpnServices&goto run
+if "%CHOICE%"=="3" goto services
 if "%CHOICE%"=="4" goto reconnect
 if "%CHOICE%"=="5" goto adapter
 if "%CHOICE%"=="6" goto dhcp
-if "%CHOICE%"=="7" set ARGS=-FlushDns&goto run
-if "%CHOICE%"=="8" set ARGS=-ResetWinsockTcpIp&goto run
+if "%CHOICE%"=="7" goto dns
+if "%CHOICE%"=="8" goto stack
 if "%CHOICE%"=="0" goto end
 goto menu
+
+:diagnose
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1"
+goto complete
 
 :safe
 set /p CONNECTION=VPN profile name (leave blank to skip reconnect): 
 set /p ADAPTER=Adapter name (leave blank to skip adapter restart): 
-set ARGS=-RepairAllSafe
-if not "%CONNECTION%"=="" set ARGS=%ARGS% -ConnectionName "%CONNECTION%"
-if not "%ADAPTER%"=="" set ARGS=%ARGS% -AdapterName "%ADAPTER%"
-goto run
+if "%CONNECTION%"=="" if "%ADAPTER%"=="" powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" -RepairAllSafe
+if not "%CONNECTION%"=="" if "%ADAPTER%"=="" powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" -RepairAllSafe -ConnectionName "%CONNECTION%"
+if "%CONNECTION%"=="" if not "%ADAPTER%"=="" powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" -RepairAllSafe -AdapterName "%ADAPTER%"
+if not "%CONNECTION%"=="" if not "%ADAPTER%"=="" powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" -RepairAllSafe -ConnectionName "%CONNECTION%" -AdapterName "%ADAPTER%"
+goto complete
+
+:services
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" -RestartVpnServices
+goto complete
 
 :reconnect
 set /p CONNECTION=VPN profile name: 
-set ARGS=-ReconnectVpn -ConnectionName "%CONNECTION%"
-goto run
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" -ReconnectVpn -ConnectionName "%CONNECTION%"
+goto complete
 
 :adapter
 set /p ADAPTER=Adapter name: 
-set ARGS=-RestartVpnAdapter -AdapterName "%ADAPTER%"
-goto run
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" -RestartVpnAdapter -AdapterName "%ADAPTER%"
+goto complete
 
 :dhcp
 set /p ADAPTER=Adapter name: 
-set ARGS=-RenewDhcp -AdapterName "%ADAPTER%"
-goto run
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" -RenewDhcp -AdapterName "%ADAPTER%"
+goto complete
 
-:run
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "Unblock-File -LiteralPath '%~dp0VPN_Connectivity_Repair_Toolkit.ps1' -ErrorAction SilentlyContinue"
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" %ARGS%
+:dns
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" -FlushDns
+goto complete
+
+:stack
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0VPN_Connectivity_Repair_Toolkit.ps1" -ResetWinsockTcpIp
+goto complete
+
+:complete
 echo.
 pause
 goto menu
