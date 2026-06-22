@@ -92,4 +92,8 @@ Double-click:
 Launch_VPN_Repair.bat
 ```
 
-The scripts have been source-reviewed for Windows PowerShell 5.1 but have not been runtime-tested against every VPN vendor, Windows build or authentication method.
+## Validation status
+
+Tested successfully by the author on his own Windows machines. The documented native Windows VPN, adapter, DHCP, DNS and network-stack workflows worked as intended on those systems.
+
+Results may vary with the Windows build, VPN profile type, authentication method, saved credentials, adapter driver, vendor VPN software, firewall policy, network configuration and user-specific environment. Use `-DryRun` before applying repairs on a new machine or VPN setup.
