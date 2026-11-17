@@ -97,3 +97,11 @@ Launch_VPN_Repair.bat
 Tested successfully by the author on his own Windows machines. The documented native Windows VPN, adapter, DHCP, DNS and network-stack workflows worked as intended on those systems.
 
 Results may vary with the Windows build, VPN profile type, authentication method, saved credentials, adapter driver, vendor VPN software, firewall policy, network configuration and user-specific environment. Use `-DryRun` before applying repairs on a new machine or VPN setup.
+
+## November 2026 field incident case study
+
+- [Incident runbook](case-studies/2026-11-wireguard-odbc-sql.md): WireGuard/SQL Server named-instance connectivity: ODBC resolution unconfirmed.
+- [Reusable PowerShell helper](examples/Test-SqlBrowserPath.ps1): read-only SQL TCP/UDP reachability.
+- [Pester static validation](tests/StaticQuality.Tests.ps1) and [read-only CI workflow](.github/workflows/pester-static-qa.yml).
+
+These case studies are anonymized. Review all commands and check the actual environment before execution. CI passing does **not** mean the original incident is fully remediated.
